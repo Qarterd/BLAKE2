@@ -37,7 +37,7 @@
 
 #include "blake2b-round.h"
 
-ALIGN( 64 ) static const uint64_t blake2b_IV[8] =
+static const uint64_t blake2b_IV[8] =
 {
   0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL,
   0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
@@ -65,13 +65,13 @@ static const uint8_t blake2b_sigma[12][16] =
 /* Some helper functions, not necessarily useful */
 static inline int blake2b_set_lastnode( blake2b_state *S )
 {
-  S->f[1] = ~0ULL;
+  S->f[1] = -1;
   return 0;
 }
 
 static inline int blake2b_clear_lastnode( blake2b_state *S )
 {
-  S->f[1] = 0ULL;
+  S->f[1] = 0;
   return 0;
 }
 
@@ -79,7 +79,7 @@ static inline int blake2b_set_lastblock( blake2b_state *S )
 {
   if( S->last_node ) blake2b_set_lastnode( S );
 
-  S->f[0] = ~0ULL;
+  S->f[0] = -1;
   return 0;
 }
 
@@ -87,7 +87,7 @@ static inline int blake2b_clear_lastblock( blake2b_state *S )
 {
   if( S->last_node ) blake2b_clear_lastnode( S );
 
-  S->f[0] = 0ULL;
+  S->f[0] = 0;
   return 0;
 }
 
@@ -175,11 +175,10 @@ static inline int blake2b_init0( blake2b_state *S )
 /* init xors IV with input parameter block */
 int blake2b_init_param( blake2b_state *S, const blake2b_param *P )
 {
-  uint8_t *p, *h, *v;
   //blake2b_init0( S );
-  v = ( uint8_t * )( blake2b_IV );
-  h = ( uint8_t * )( S->h );
-  p = ( uint8_t * )( P );
+  const uint8_t * v = ( const uint8_t * )( blake2b_IV );
+  const uint8_t * p = ( const uint8_t * )( P );
+  uint8_t * h = ( uint8_t * )( S->h );
   /* IV XOR ParamBlock */
   memset( S, 0, sizeof( blake2b_state ) );
 
@@ -349,6 +348,9 @@ int blake2b_update( blake2b_state *S, const uint8_t *in, uint64_t inlen )
 
 int blake2b_final( blake2b_state *S, uint8_t *out, uint8_t outlen )
 {
+  if( outlen > BLAKE2B_OUTBYTES )
+    return -1;
+
   if( S->buflen > BLAKE2B_BLOCKBYTES )
   {
     blake2b_increment_counter( S, BLAKE2B_BLOCKBYTES );
@@ -386,7 +388,7 @@ int blake2b( uint8_t *out, const void *in, const void *key, const uint8_t outlen
     if( blake2b_init( S, outlen ) < 0 ) return -1;
   }
 
-  blake2b_update( S, ( uint8_t * )in, inlen );
+  blake2b_update( S, ( const uint8_t * )in, inlen );
   blake2b_final( S, out, outlen );
   return 0;
 }
