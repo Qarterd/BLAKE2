@@ -24,6 +24,9 @@
 #include <emmintrin.h>
 #if defined(HAVE_SSSE3)
 #include <tmmintrin.h>
+#ifdef _WIN32
+#include <intrin.h>
+#endif
 #endif
 #if defined(HAVE_SSE41)
 #include <smmintrin.h>

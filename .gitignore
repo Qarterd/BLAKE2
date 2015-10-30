@@ -1,7 +1,12 @@
-*.suo
-*.sdf
-*.vcxproj.user
 .DS_Store
 xcuserdata
 build
 dist
+
+#visual studio
+*.opensdf
+*.sdf
+*.vcxproj.user
+.vs
+ipch
+x64
